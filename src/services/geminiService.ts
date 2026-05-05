@@ -1,6 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getApiKey = () => {
+  if (typeof process !== "undefined" && process.env) {
+    return process.env.GEMINI_API_KEY || "";
+  }
+  return "";
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 export interface LedgerItem {
   description: string;
@@ -30,7 +37,7 @@ export interface VerificationResult {
 }
 
 export async function processLedgerImage(base64Image: string): Promise<LedgerResult> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   
   const mimeTypeMatch = base64Image.match(/^data:(image\/[a-zA-Z]+);base64,/);
   const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
@@ -142,7 +149,7 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
 }
 
 export async function verifyLedgerAccuracy(base64Image: string, previousResult: LedgerResult): Promise<VerificationResult> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
   
   const mimeTypeMatch = base64Image.match(/^data:(image\/[a-zA-Z]+);base64,/);
   const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";

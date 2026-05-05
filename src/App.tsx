@@ -233,10 +233,10 @@ export default function App() {
     const textContent = `
 স্মার্ট হিসাব - ফলাফল
 তারিখ: ${new Date().toLocaleDateString('bn-BD')}
-মোট পরিমাণ: ৳${result.total.toLocaleString()}
+মোট পরিমাণ: ৳${Number(result.total || 0).toLocaleString('bn-BD')}
 
 হিসাবের বিবরণ:
-${result.items.map(item => `- ${item.description || 'বিবরণ নেই'}: ৳${item.amount.toLocaleString()}`).join('\n')}
+${result.items.map(item => `- ${item.description || 'বিবরণ নেই'}: ৳${Number(item.amount || 0).toLocaleString('bn-BD')}`).join('\n')}
 
 AI সারসংক্ষেপ:
 ${result.summary}
@@ -267,7 +267,7 @@ ${result.summary}
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareableData))));
     const shareUrl = `${window.location.origin}${window.location.pathname}#share=${encoded}`;
 
-    const shareText = `স্মার্ট হিসাব ফলাফল\nমোট: ৳${result.total.toLocaleString()}\nসারসংক্ষেপ: ${result.summary}\n\nহিসাবের তালিকা:\n${result.items.map(item => `- ${item.description || 'বিবরণ নেই'}: ৳${item.amount.toLocaleString()}`).join('\n')}\n\nলিঙ্ক: ${shareUrl}`;
+    const shareText = `স্মার্ট হিসাব ফলাফল\nমোট: ৳${Number(result.total || 0).toLocaleString('bn-BD')}\nসারসংক্ষেপ: ${result.summary}\n\nহিসাবের তালিকা:\n${result.items.map(item => `- ${item.description || 'বিবরণ নেই'}: ৳${Number(item.amount || 0).toLocaleString('bn-BD')}`).join('\n')}\n\nলিঙ্ক: ${shareUrl}`;
     
     if (navigator.share) {
       try {
@@ -506,7 +506,7 @@ ${result.summary}
                   <h2 className="text-xs font-bold uppercase tracking-[0.2em] opacity-80 mb-2">সর্বমোট পরিমাণ</h2>
                   <div className="text-5xl font-display font-bold tabular-nums tracking-tight drop-shadow-sm flex items-center justify-center gap-1">
                     <span className="text-3xl mt-2">৳</span>
-                    {result.total.toLocaleString('bn-BD')}
+                    {Number(result.total || 0).toLocaleString('bn-BD')}
                   </div>
                   <div className="absolute top-0 right-0 p-4 opacity-10">
                     <CheckCircle2 size={120} />
@@ -624,7 +624,7 @@ ${result.summary}
                             />
                           </div>
                           <div className="text-[10px] font-bold text-slate-400 tabular-nums">
-                            {item.amount.toLocaleString('bn-BD')} টাকা
+                            {Number(item.amount || 0).toLocaleString('bn-BD')} টাকা
                           </div>
                         </div>
                       </motion.div>
@@ -799,7 +799,7 @@ ${result.summary}
                               return (
                                 <div className="bg-slate-900 dark:bg-slate-800 text-white p-3 rounded-xl shadow-xl text-[10px] font-bold border border-slate-700">
                                   <div className="opacity-60 mb-1">{payload[0].payload.date}</div>
-                                  <div>৳{payload[0].value?.toLocaleString()}</div>
+                                  <div>৳{Number(payload[0].value || 0).toLocaleString('bn-BD')}</div>
                                 </div>
                               );
                             }
@@ -856,7 +856,7 @@ ${result.summary}
                           <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mb-1">{item.date}</div>
                           <div className="font-bold text-slate-700 dark:text-slate-200 text-base truncate pr-2">{item.summary}</div>
                         </div>
-                        <div className="text-indigo-600 dark:text-indigo-400 font-display font-bold text-xl whitespace-nowrap">৳{item.total.toLocaleString()}</div>
+                        <div className="text-indigo-600 dark:text-indigo-400 font-display font-bold text-xl whitespace-nowrap">৳{Number(item.total || 0).toLocaleString('bn-BD')}</div>
                       </div>
                       
                       <div className="mt-4 flex items-center gap-2 text-xs font-bold text-indigo-400 group-hover:text-indigo-600 transition-colors">
