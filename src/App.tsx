@@ -17,7 +17,15 @@ export default function App() {
   const [result, setResult] = useState<LedgerResult | null>(null);
   const [verificationReport, setVerificationReport] = useState<VerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [history, setHistory] = useState<SavedScan[]>([]);
+  const [history, setHistory] = useState<SavedScan[]>(() => {
+    try {
+      const saved = localStorage.getItem('history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to load history', e);
+      return [];
+    }
+  });
   const [view, setView] = useState<'home' | 'result' | 'history'>('home');
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -56,6 +64,14 @@ export default function App() {
       }
     }
   }, []);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('history', JSON.stringify(history));
+    } catch (e) {
+      console.error('Failed to save history', e);
+    }
+  }, [history]);
 
   React.useEffect(() => {
     return () => {
