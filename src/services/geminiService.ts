@@ -30,7 +30,7 @@ export interface VerificationResult {
 }
 
 export async function processLedgerImage(base64Image: string): Promise<LedgerResult> {
-  const model = "gemini-3-flash-preview";
+  const modelName = "gemini-3-flash-preview";
   
   const mimeTypeMatch = base64Image.match(/^data:(image\/[a-zA-Z]+);base64,/);
   const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
@@ -48,23 +48,9 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
       You are a specialized Optical Character Recognition (OCR) expert with a focus on South Asian handwritten business ledgers (Hishab Khata). 
       Your task is to transcribe and calculate the total from the provided image.
       
-      CRITICAL INSTRUCTIONS FOR SUPREME ACCURACY:
-      0. QUALITY CHECK (Immediate):
-         - Assess if the image is readable. If blurry, dark, or non-ledger, set "isReadable": false and provide "qualityFeedback".
-      
-      1. SIGNATURE STYLE CALIBRATION:
-         - Scan the entire page first to identify a 'Signature Style'. 
-         - If the user writes '৳' or 'Tk', use that spatial anchor.
-         - Find unambiguous numbers (like a clear '100') to determine if they use Western (1, 2, 3) or Bengali (১, ২, ৩) numerals.
-      
-      2. ADVANCED DIGIT DISAMBIGUATION:
-         - Bengali ১ (1) vs. Western 9
-         - Bengali ৪ (4) vs. Western 8
-         - Bengali ৫ (5) vs. Western 6
-         - Bengali ৭ (7) vs. Western 9
-      
-      3. MATH CHECK:
-         - Perform an internal math check. If the 'Total' written on the paper contradicts the sum of the rows, re-examine the ambiguous digits.
+      CRITICAL INSTRUCTIONS:
+      1. SIGNATURE STYLE CALIBRATION: Identify if they use Western (1, 2, 3) or Bengali (১, ২, ৩) numerals.
+      2. MATH CHECK: Perform internal math check. If paper total contradicts sum, re-examine.
       
       OUTPUT REQUIREMENTS:
       - "items": Array of { "description": string, "amount": number }.
@@ -79,8 +65,8 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
 
   try {
     const response = await ai.models.generateContent({
-      model,
-      contents: [{ role: "user", parts: [imagePart, textPart] }],
+      model: modelName,
+      contents: { parts: [imagePart, textPart] },
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -121,7 +107,7 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
 }
 
 export async function verifyLedgerAccuracy(base64Image: string, previousResult: LedgerResult): Promise<VerificationResult> {
-  const model = "gemini-3-flash-preview";
+  const modelName = "gemini-3-flash-preview";
   
   const mimeTypeMatch = base64Image.match(/^data:(image\/[a-zA-Z]+);base64,/);
   const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
@@ -136,25 +122,14 @@ export async function verifyLedgerAccuracy(base64Image: string, previousResult: 
   
   const textPart = {
     text: `
-      You are a Verification Auditor for Handwritten Ledger OCR. 
-      I will provide an image and a previous extraction result. 
-      Your job is to RE-SCAN the image with 10x more focus on numerical precision.
-      
-      PREVIOUS RESULT:
+      Verify this ledger OCR. Image provided with PREVIOUS RESULT:
       ${JSON.stringify(previousResult, null, 2)}
       
       OUTPUT FORMAT (JSON):
       {
         "isConsistent": boolean,
         "mismatchCount": number,
-        "detections": [
-          {
-            "originalValue": string,
-            "suggestedValue": string,
-            "explanation": string (Bengali),
-            "confidence": number
-          }
-        ],
+        "detections": [{ "originalValue": string, "suggestedValue": string, "explanation": string (Bengali), "confidence": number }],
         "styleAnalysis": string (Bengali)
       }
     `,
@@ -162,8 +137,8 @@ export async function verifyLedgerAccuracy(base64Image: string, previousResult: 
 
   try {
     const response = await ai.models.generateContent({
-      model,
-      contents: [{ role: "user", parts: [imagePart, textPart] }],
+      model: modelName,
+      contents: { parts: [imagePart, textPart] },
       config: {
         responseMimeType: "application/json",
         responseSchema: {
