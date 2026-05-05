@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const apiKey = process.env.GEMINI_API_KEY || "";
+const ai = new GoogleGenAI({ apiKey });
 
 export interface LedgerItem {
   description: string;
@@ -15,6 +16,7 @@ export interface LedgerResult {
   confidenceScore: number;
   isReadable: boolean;
   qualityFeedback?: string;
+  imageUrl?: string;
 }
 
 export interface VerificationResult {
@@ -42,8 +44,8 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
       data: base64Data,
     },
   };
-  
-  const textPart = {
+
+  const prompt = {
     text: `
       You are a specialized Optical Character Recognition (OCR) expert with a focus on South Asian handwritten business ledgers (Hishab Khata). 
       Your task is to transcribe and calculate the total from the provided image.
@@ -53,20 +55,20 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
       2. MATH CHECK: Perform internal math check. If paper total contradicts sum, re-examine.
       
       OUTPUT REQUIREMENTS:
-      - "items": Array of { "description": string, "amount": number }.
-      - "total": The mathematical sum of all extracted "amount" values.
-      - "summary": A concise report in friendly, professional Bengali.
-      - "numeralStyle": "Bengali", "Western", or "Mixed".
-      - "confidenceScore": 0-100.
-      - "isReadable": Boolean.
-      - "qualityFeedback": String if not readable.
+      - items: Array of { description: string, amount: number }.
+      - total: The mathematical sum of all extracted "amount" values.
+      - summary: A concise report in friendly, professional Bengali.
+      - numeralStyle: "Bengali", "Western", or "Mixed".
+      - confidenceScore: 0-100.
+      - isReadable: Boolean.
+      - qualityFeedback: String if not readable.
     `,
   };
 
   try {
     const response = await ai.models.generateContent({
       model: modelName,
-      contents: { parts: [imagePart, textPart] },
+      contents: { parts: [imagePart, prompt] },
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -95,8 +97,7 @@ export async function processLedgerImage(base64Image: string): Promise<LedgerRes
       }
     });
 
-    const parsed = JSON.parse(response.text);
-    return parsed;
+    return JSON.parse(response.text || "{}");
   } catch (error: any) {
     console.error("Gemini OCR Error:", error);
     if (error.message?.includes("API key")) {
@@ -119,26 +120,24 @@ export async function verifyLedgerAccuracy(base64Image: string, previousResult: 
       data: base64Data,
     },
   };
-  
-  const textPart = {
+
+  const prompt = {
     text: `
       Verify this ledger OCR. Image provided with PREVIOUS RESULT:
       ${JSON.stringify(previousResult, null, 2)}
       
       OUTPUT FORMAT (JSON):
-      {
-        "isConsistent": boolean,
-        "mismatchCount": number,
-        "detections": [{ "originalValue": string, "suggestedValue": string, "explanation": string (Bengali), "confidence": number }],
-        "styleAnalysis": string (Bengali)
-      }
+      - isConsistent: boolean
+      - mismatchCount: number
+      - detections: Array of mismatch objects
+      - styleAnalysis: Bengali text report
     `,
   };
 
   try {
     const response = await ai.models.generateContent({
       model: modelName,
-      contents: { parts: [imagePart, textPart] },
+      contents: { parts: [imagePart, prompt] },
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -166,7 +165,7 @@ export async function verifyLedgerAccuracy(base64Image: string, previousResult: 
       }
     });
 
-    return JSON.parse(response.text);
+    return JSON.parse(response.text || "{}");
   } catch (error) {
     console.error("Verification error:", error);
     return {

@@ -408,20 +408,19 @@ ${result.summary}
                 <div className="relative z-10">
                   <h2 className="text-3xl font-bold mb-3 leading-tight tracking-tight">সহজ হিসাব<br/>পদ্ধতি</h2>
                   <p className="opacity-80 mb-8 text-sm leading-relaxed max-w-[200px]">হাতে লেখা খাতার ছবি তুলুন এবং চোখের পলকে ফলাফল পান।</p>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col gap-3">
                     <button 
                       onClick={startCamera}
-                      className="bg-white text-indigo-600 px-7 py-3.5 rounded-2xl font-bold flex items-center gap-2 active:scale-95 transition-all shadow-xl shadow-black/5 hover:bg-slate-50"
+                      className="w-full bg-white text-indigo-600 px-7 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-black/5 hover:bg-slate-50"
                     >
-                      <Camera size={20} /> স্ক্যান করুন
+                      <Camera size={22} /> স্ক্যান করুন
                     </button>
                     
                     <button 
                       onClick={triggerCamera}
-                      className="bg-indigo-500/30 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl font-bold flex items-center justify-center active:scale-95 transition-all border border-white/20 hover:bg-indigo-500/40 shadow-xl shadow-black/5"
-                      title="গ্যালারি থেকে নিন"
+                      className="w-full bg-indigo-500/30 backdrop-blur-md text-white px-7 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all border border-white/20 hover:bg-indigo-500/40 shadow-xl shadow-black/5"
                     >
-                      <ImageIcon size={22} />
+                      <ImageIcon size={22} /> গ্যালারি থেকে আপলোড
                     </button>
                   </div>
                 </div>
