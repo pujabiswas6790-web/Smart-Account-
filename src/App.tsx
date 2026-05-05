@@ -17,6 +17,7 @@ export default function App() {
   const [result, setResult] = useState<LedgerResult | null>(null);
   const [verificationReport, setVerificationReport] = useState<VerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isPendingSave, setIsPendingSave] = useState(false);
   const [history, setHistory] = useState<SavedScan[]>(() => {
     try {
       const saved = localStorage.getItem('history');
@@ -158,15 +159,7 @@ export default function App() {
       const resultWithImage = { ...data, imageUrl: base64 };
       setResult(resultWithImage);
       setZoomScale(1);
-      
-      // Auto save to history
-      const newScan: SavedScan = {
-        ...resultWithImage,
-        id: Math.random().toString(36).substr(2, 9),
-        date: new Date().toLocaleDateString('bn-BD'),
-        timestamp: Date.now()
-      };
-      setHistory(prev => [newScan, ...prev]);
+      setIsPendingSave(true);
       setView('result');
       setLoading(false);
     } catch (err) {
@@ -217,6 +210,22 @@ export default function App() {
     } finally {
       setVerificationLoading(false);
     }
+  };
+
+  const handleSave = () => {
+    if (!result) return;
+    
+    const newScan: SavedScan = {
+      ...result,
+      id: Math.random().toString(36).substr(2, 9),
+      date: new Date().toLocaleDateString('bn-BD'),
+      timestamp: Date.now()
+    };
+    
+    setHistory(prev => [newScan, ...prev]);
+    setResult(newScan); // Update result with the one that has an ID
+    setIsPendingSave(false);
+    alert('হিসাবটি ইতিহাসে সফলভাবে সংরক্ষণ করা হয়েছে।');
   };
 
   const clearHistory = () => {
@@ -734,29 +743,68 @@ ${result.summary}
                 )}
               </AnimatePresence>
 
-              <div className="flex gap-3">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setView('home')}
-                  className="flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-4.5 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-slate-200 dark:shadow-none transition-shadow active:bg-slate-800 dark:active:bg-indigo-700"
+              {isPendingSave && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 p-4 rounded-2xl flex items-center gap-3"
                 >
-                   নতুন স্ক্যান
-                </motion.button>
-                <button 
-                  onClick={handleDownload}
-                  className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm active:scale-95 transition-all"
-                  title="সেভ করুন"
-                >
-                  <Download size={24} />
-                </button>
-                <button 
-                  onClick={handleShare}
-                  className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm active:scale-95 transition-all"
-                  title="শেয়ার করুন"
-                >
-                  <Share2 size={24} />
-                </button>
+                  <div className="bg-indigo-600 text-white p-1.5 rounded-lg shrink-0">
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <p className="text-indigo-800 dark:text-indigo-400 text-xs font-medium">
+                    অনুগ্রহ করে একবার সবকিছু মিলিয়ে নিন। ভুল থাকলে এডিট করে সেভ করুন।
+                  </p>
+                </motion.div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                {isPendingSave ? (
+                  <motion.button 
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={handleSave}
+                    className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 dark:shadow-none transition-all"
+                  >
+                    <CheckCircle2 size={22} /> নিশ্চিত করুন এবং সেভ করুন
+                  </motion.button>
+                ) : (
+                  <div className="flex gap-3">
+                    <motion.button 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setView('home')}
+                      className="flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-4.5 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-slate-200 dark:shadow-none transition-shadow active:bg-slate-800 dark:active:bg-indigo-700"
+                    >
+                       নতুন স্ক্যান
+                    </motion.button>
+                    <button 
+                      onClick={handleDownload}
+                      className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm active:scale-95 transition-all"
+                      title="সেভ করুন"
+                    >
+                      <Download size={24} />
+                    </button>
+                    <button 
+                      onClick={handleShare}
+                      className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm active:scale-95 transition-all"
+                      title="শেয়ার করুন"
+                    >
+                      <Share2 size={24} />
+                    </button>
+                  </div>
+                )}
+                
+                {isPendingSave && (
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setView('home')}
+                      className="flex-1 py-3 text-xs font-bold text-slate-400 dark:text-slate-500 hover:text-slate-600 transition-colors"
+                    >
+                      বাতিল করুন
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           ) : (
@@ -863,6 +911,7 @@ ${result.summary}
                       onClick={() => {
                         setResult(item);
                         setZoomScale(1);
+                        setIsPendingSave(false);
                         setView('result');
                       }}
                     >
